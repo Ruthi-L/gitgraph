@@ -1,24 +1,20 @@
 import sqlite3
+import os
 
-DB_NAME = "github_network.db"
+DB_PATH = "github_network.db"
+
+def get_db_connection():
+    """Create a database connection to the SQLite database."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def init_db():
-<<<<<<< HEAD
-    """Initializes the database and creates the necessary tables safely."""
-    conn = sqlite3.connect(DB_NAME)
+    """Initialize database tables for users and relationships."""
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-=======
-    """Initializes the database and clears old tracking schemas for testing."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    # Drop old tables during configuration to clear hardcoded 'FETCHED' states
-    cursor.execute('DROP TABLE IF EXISTS relationships')
-    cursor.execute('DROP TABLE IF EXISTS users')
-    
-    # Create Users table
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
+    # Users table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,10 +22,7 @@ def init_db():
         )
     ''')
     
-<<<<<<< HEAD
-=======
-    # Create Multidimensional Relationships table
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
+    # Relationships table (Follows, Starred, Forked)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS relationships (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,39 +37,26 @@ def init_db():
     conn.close()
 
 def get_user_id(username):
-<<<<<<< HEAD
-    """Retrieves or inserts a user and returns their database ID."""
-=======
-    """Retrieves or inserts a user node and returns their system ID."""
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
-    conn = sqlite3.connect(DB_NAME)
+    """Get user ID or insert user if not exists."""
+    conn = get_db_connection()
     cursor = conn.cursor()
-    
-    cursor.execute("INSERT OR IGNORE INTO users (username) VALUES (?)", (username,))
-    conn.commit()
-    
     cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-<<<<<<< HEAD
     row = cursor.fetchone()
-    user_id = row[0] if row else None
-=======
-    user_id = cursor.fetchone()[0]
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
-    
+    if row:
+        user_id = row['id']
+    else:
+        cursor.execute("INSERT INTO users (username) VALUES (?)", (username,))
+        conn.commit()
+        user_id = cursor.lastrowid
     conn.close()
     return user_id
 
-<<<<<<< HEAD
-def record_relationship(follower, followed, relation_type="FETCHED"):
-    """Records a directed relationship connection between two developers."""
-=======
 def record_relationship(follower, followed, relation_type):
-    """Records distinct multi-metric developer interactions (FOLLOWS, STARRED, FORKED)."""
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
+    """Record a directed edge/relationship between two users."""
     get_user_id(follower)
     get_user_id(followed)
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute('''
@@ -84,29 +64,20 @@ def record_relationship(follower, followed, relation_type):
             VALUES (?, ?, ?)
         ''', (follower, followed, relation_type))
         conn.commit()
-    except sqlite3.Error as e:
-<<<<<<< HEAD
+    except Exception as e:
         print(f"Database error recording relationship: {e}")
-=======
-        print(f"Database error writing relationship: {e}")
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
     finally:
         conn.close()
 
 def get_all_data():
-<<<<<<< HEAD
-    """Fetches all stored nodes and edges for network analysis processing."""
-=======
-    """Fetches full topology metrics for the NetworkX analytics pipeline."""
->>>>>>> 9378a66941f24135a0949128d2c9a2e95ef9e770
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
+    """Retrieve all users and relationships for graph construction and DSA."""
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT id, username FROM users")
+    cursor.execute("SELECT * FROM users")
     users = [dict(row) for row in cursor.fetchall()]
     
-    cursor.execute("SELECT follower_name, followed_name, relation_type FROM relationships")
+    cursor.execute("SELECT * FROM relationships")
     relationships = [dict(row) for row in cursor.fetchall()]
     
     conn.close()
