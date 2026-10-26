@@ -25,17 +25,17 @@ Unlike standard apps relying on black-box external libraries for graph traversal
 
 **Live Metrics Ticker**: Real-time calculation of total indexed developer nodes, relationship edges, and community clusters.
 
-##  Getting Started Locally
+## 🚀 Getting Started Locally
 
 1. Clone the Repository
 ```bash
 git clone [https://github.com/Ruthi-L/gitgraph.git](https://github.com/Ruthi-L/gitgraph.git)
 cd gitgraph
 
-
-2. Install Dependencies
-
+ 2. Install Dependencies
+Bash
 pip install flask networkx pyvis requests
 
 3. Run the Application
+Bash
 python app.py
